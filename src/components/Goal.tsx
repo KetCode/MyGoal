@@ -22,7 +22,7 @@ export function Goal({ goal, ...rest }: Props) {
       activeOpacity={0.7}
       {...rest}
     >
-      <Text className="text-white font-bold text-lg mb-3">{goal.name}</Text>
+      <Text className="text-white font-bold text-lg mb-3" numberOfLines={1}>{goal.name}</Text>
 
       <Text className="text-white font-semiBold text-sm">
         {currencyFormat(goal.current)}
