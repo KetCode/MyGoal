@@ -1,6 +1,6 @@
 // LIBS
 import { useEffect, useRef, useState } from "react"
-import { Alert, Keyboard, View } from "react-native"
+import { Alert, Keyboard, View, Text, TouchableOpacity } from "react-native"
 import { router, useLocalSearchParams } from "expo-router"
 import Bottom from "@gorhom/bottom-sheet"
 import dayjs from "dayjs"
@@ -22,9 +22,9 @@ import { TransactionProps } from "@/components/Transaction"
 import { TransactionTypeSelect } from "@/components/TransactionTypeSelect"
 
 // UTILS
-import { mocks } from "@/utils/mocks"
 import { currencyFormat } from "@/utils/currencyFormat"
 import { RemoveButton } from "@/components/RemoveButton"
+import { Modal } from "@/components/Modal"
 
 type Details = {
   name: string
@@ -52,6 +52,10 @@ export default function Details() {
   const bottomSheetRef = useRef<Bottom>(null)
   const handleBottomSheetOpen = () => bottomSheetRef.current?.expand()
   const handleBottomSheetClose = () => bottomSheetRef.current?.snapToIndex(0)
+
+  // CONFIRM POPUP MODAL
+  const [open, setOpen] = useState(false)
+  const isOpen = () => {setOpen(!open)}
 
   function fetchDetails() {
     try {
@@ -132,9 +136,25 @@ export default function Details() {
 
   return (
     <View className="flex-1 p-8 pt-12">
-      <View className="" style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between'}}>
+
+      <Modal isOpen={open}>
+          <View className="bg-white rounded-lg p-9 m-5">
+            <Text className="font-bold text-lg mb-3">Atenção</Text>
+            <Text className="font-regular text-lg mb-3">Tem certeza que deseja deletar?</Text>
+            <View className="flex-row justify-end">
+              <TouchableOpacity className="items-center justify-center rounded-sm p-2 border-zinc-900/40 border-2 px-4" onPress={isOpen}>
+                <Text className="text-sm font-semiBold uppercase">Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="bg-blue-500 items-center justify-center rounded-sm p-2 ml-5 px-4" onPress={handleRemoveGoal}>
+                <Text className="text-white text-sm font-semiBold uppercase">Sim</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+      </Modal>
+
+      <View className="items-center justify-between flex-row">
         <BackButton />
-        <RemoveButton onRemove={handleRemoveGoal} />
+        <RemoveButton onRemove={isOpen} />
       </View>
 
       <Header title={goal.name} subtitle={`${goal.current} de ${goal.total}`} />
