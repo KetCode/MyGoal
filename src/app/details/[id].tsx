@@ -1,6 +1,6 @@
 // LIBS
 import { useEffect, useRef, useState } from "react"
-import { Alert, Keyboard, View, Text, TouchableOpacity } from "react-native"
+import { Keyboard, View, Text, TouchableOpacity } from "react-native"
 import { router, useLocalSearchParams } from "expo-router"
 import Bottom from "@gorhom/bottom-sheet"
 import dayjs from "dayjs"
@@ -25,6 +25,9 @@ import { TransactionTypeSelect } from "@/components/TransactionTypeSelect"
 import { currencyFormat } from "@/utils/currencyFormat"
 import { RemoveButton } from "@/components/RemoveButton"
 import { Modal } from "@/components/Modal"
+import { Alert } from "@/components/Alert"
+import { colors } from "@/styles/colors"
+import { alertStyle } from "@/utils/alertStyles"
 
 type Details = {
   name: string
@@ -56,6 +59,10 @@ export default function Details() {
   // CONFIRM POPUP MODAL
   const [open, setOpen] = useState(false)
   const isOpen = () => {setOpen(!open)}
+
+  // SHOW TOAST NOTIFICATION
+  const [showToast, setShowToast] = useState(false)
+  const [showToastError, setShowToastError] = useState(false)
 
   function fetchDetails() {
     try {
@@ -89,8 +96,14 @@ export default function Details() {
     try {
       let amountAsNumber = Number(amount.replace(",", "."))
 
-      if (isNaN(amountAsNumber)) {
-        return Alert.alert("Erro", "Valor inválido.")
+      if (isNaN(amountAsNumber) || amountAsNumber <= 0) {
+        // return Alert.alert("Erro", "Valor inválido.")
+        return [
+          setShowToastError(!showToastError),
+          setTimeout(() => {
+            setShowToastError(showToastError)
+          }, 3000)
+        ]
       }
 
       if (type === "down") {
@@ -99,7 +112,12 @@ export default function Details() {
 
       useTransaction.create({ goalId, amount: amountAsNumber })
 
-      Alert.alert("Sucesso", "Transação registrada!")
+      // Alert.alert("Sucesso", "Transação registrada!")
+      setShowToast(!showToast)
+
+      setTimeout(() => {
+        setShowToast(showToast)
+      }, 3000)
 
       handleBottomSheetClose()
       Keyboard.dismiss()
@@ -117,8 +135,6 @@ export default function Details() {
     try {
       useGoal.remove(goalId)
       useTransaction.remove(goalId)
-
-      Alert.alert("Sucesso", "Meta removida!")
 
       fetchDetails()
     } catch (error) {
@@ -182,6 +198,8 @@ export default function Details() {
 
         <Button title="Confirmar" onPress={handleNewTransaction} />
       </BottomSheet>
+      { showToast && <Alert closeAlert={async () => setShowToast(!showToast)} title={"Sucesso"} content={"Transação registrada!"} styleBg={alertStyle.green.body} styleTitle={alertStyle.green.title} styleContent={alertStyle.green.content} colorButton={colors.green[500]} />}
+      { showToastError && <Alert closeAlert={async () => setShowToastError(!showToastError)} title={"Erro"} content={"Valor inválido."} styleBg={alertStyle.red.body} styleTitle={alertStyle.red.title} styleContent={alertStyle.red.content} colorButton={colors.red[500]} />}
     </View>
   )
 }
