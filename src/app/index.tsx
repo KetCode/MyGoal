@@ -1,6 +1,6 @@
 // LIBS
 import { useEffect, useRef, useState } from "react"
-import { Alert, View, Keyboard } from "react-native"
+import { View, Keyboard } from "react-native"
 import Bottom from "@gorhom/bottom-sheet"
 import { router } from "expo-router"
 import dayjs from "dayjs"
@@ -12,6 +12,9 @@ import { Button } from "@/components/Button"
 import { BottomSheet } from "@/components/BottomSheet"
 import { Goals, GoalsProps } from "@/components/Goals"
 import { Transactions, TransactionsProps } from "@/components/Transactions"
+import { Alert } from "@/components/Alert"
+import { colors } from "@/styles/colors"
+import { alertStyle } from "@/utils/alertStyles"
 
 // DATABASE
 import { useGoalRepository } from "@/database/useGoalRepository"
@@ -35,6 +38,11 @@ export default function Home() {
   const handleBottomSheetOpen = () => bottomSheetRef.current?.expand()
   const handleBottomSheetClose = () => bottomSheetRef.current?.snapToIndex(0)
 
+  // SHOW TOAST NOTIFICATION
+  const [showToast, setShowToast] = useState(false)
+  const [showToastError, setShowToastError] = useState(false)
+  const [showToastError2, setShowToastError2] = useState(false)
+
   function handleDetails(id: string) {
     router.navigate("/details/" + id)
   }
@@ -43,23 +51,39 @@ export default function Home() {
     try {
       const totalAsNumber = Number(total.toString().replace(",", "."))
 
-      if (isNaN(totalAsNumber)) {
-        return Alert.alert("Erro", "Valor inválido.")
+      if (isNaN(totalAsNumber) || totalAsNumber <= 0) {
+        // return Alert.alert("Erro", "Valor inválido.")
+        return [
+          setShowToastError(!showToastError),
+          setTimeout(() => {
+            setShowToastError(showToastError)
+          }, 3000)
+        ]
       }
 
       useGoal.create({ name, total: totalAsNumber })
 
       Keyboard.dismiss()
       handleBottomSheetClose()
-      Alert.alert("Sucesso", "Meta cadastrada!")
+      // Alert.alert("Sucesso", "Meta cadastrada!")
+      setShowToast(!showToast)
+
+      setTimeout(() => {
+        setShowToast(showToast)
+      }, 3000)
 
       setName("")
       setTotal("")
 
       fetchGoals()
     } catch (error) {
-      Alert.alert("Erro", "Não foi possível cadastrar.")
+      // Alert.alert("Erro", "Não foi possível cadastrar.")
       console.log(error)
+      
+      setShowToastError2(!showToastError2),
+      setTimeout(() => {
+        setShowToastError2(showToastError2)
+      }, 3000)
     }
   }
 
@@ -124,6 +148,9 @@ export default function Home() {
 
         <Button title="Criar" onPress={handleCreate} />
       </BottomSheet>
+      { showToast && <Alert closeAlert={async () => setShowToast(!showToast)} title={"Sucesso"} content={"Meta cadastrada!"} styleBg={alertStyle.green.body} styleTitle={alertStyle.green.title} styleContent={alertStyle.green.content} colorButton={colors.green[500]} />}
+      { showToastError && <Alert closeAlert={async () => setShowToastError(!showToastError)} title={"Erro"} content={"Valor inválido."} styleBg={alertStyle.red.body} styleTitle={alertStyle.red.title} styleContent={alertStyle.red.content} colorButton={colors.red[500]} />}
+      { showToastError2 && <Alert closeAlert={async () => setShowToastError2(!showToastError2)} title={"Erro"} content={"Não foi possível cadastrar."} styleBg={alertStyle.red.body} styleTitle={alertStyle.red.title} styleContent={alertStyle.red.content} colorButton={colors.red[500]} />}
     </View>
   )
 }
