@@ -54,7 +54,7 @@ Esse projeto está sob a licença MIT.
 
 ### 💡 Dicas para usar o projeto
 
-`npm init` para baixar o node_modules
+`npm install` para baixar o node_modules
 
 `npx expo start` │ `npm start` para rodar o expo e conseguir visualizar o projeto no emulador
 
